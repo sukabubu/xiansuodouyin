@@ -37,6 +37,26 @@ npm install
 npx playwright install chromium
 ```
 
+## 一键部署准备
+
+```bash
+bash deploy.sh
+```
+
+这个脚本会：
+
+- 检查 Node / npm / python3
+- 安装 npm 依赖
+- 安装 Playwright Chromium
+- 生成 `.env`（如果还不存在）
+- 创建 `data/` 和 `output/` 目录
+
+跑完后你只需要补 `.env` 里的 `DOUYIN_COOKIE`，然后执行：
+
+```bash
+npm start
+```
+
 ## 启动
 
 ```bash
