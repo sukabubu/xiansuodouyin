@@ -10,6 +10,7 @@ const UI_DIR = path.join(ROOT, 'ui')
 const DATA_DIR = path.join(ROOT, 'data')
 const OUTPUT_DIR = path.join(ROOT, 'output')
 const PYTHON = process.env.PYTHON_BIN || 'python3'
+const LEGACY_COOKIE_JSON = path.join(process.env.HOME || '', '.openclaw', 'workspace', 'tools', 'TikTokDownloader', 'Volume', 'settings.json')
 
 for (const dir of [DATA_DIR, OUTPUT_DIR]) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
@@ -21,6 +22,34 @@ function pushLog(line) {
   const entry = `${new Date().toISOString()} ${line}`
   state.log.push(entry)
   if (state.log.length > 500) state.log.shift()
+}
+
+function readLegacyCookie() {
+  try {
+    if (!fs.existsSync(LEGACY_COOKIE_JSON)) return ''
+    const raw = JSON.parse(fs.readFileSync(LEGACY_COOKIE_JSON, 'utf8'))
+    const cookie = raw.cookie || {}
+    if (typeof cookie === 'string') return cookie.trim()
+    return Object.entries(cookie)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('; ')
+      .trim()
+  } catch {
+    return ''
+  }
+}
+
+function resolveCookie(config) {
+  const directCookie = (config.cookie || '').trim()
+  if (directCookie) return { value: directCookie, source: 'ui' }
+
+  const envCookie = (process.env.DOUYIN_COOKIE || '').trim()
+  if (envCookie) return { value: envCookie, source: 'env' }
+
+  const legacyCookie = readLegacyCookie()
+  if (legacyCookie) return { value: legacyCookie, source: 'legacy-settings' }
+
+  return { value: '', source: 'missing' }
 }
 
 function readBody(req) {
@@ -76,13 +105,15 @@ function runCommand(command, args, env, label) {
 
 async function runPipeline(config) {
   if (state.running) throw new Error('A task is already running')
-  const cookie = (config.cookie || '').trim() || process.env.DOUYIN_COOKIE || ''
-  if (!cookie) throw new Error('Missing Douyin cookie. Paste one in the UI or set DOUYIN_COOKIE.')
+  const resolvedCookie = resolveCookie(config)
+  const cookie = resolvedCookie.value
+  if (!cookie) throw new Error('Missing Douyin cookie. Paste one in the UI, set DOUYIN_COOKIE, or prepare legacy settings.json.')
 
   state.running = true
   state.lastResult = null
   state.log = []
   try {
+    pushLog(`COOKIE source=${resolvedCookie.source}`)
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     const searchPath = path.join(DATA_DIR, `search-${stamp}.json`)
     const outputPath = path.join(OUTPUT_DIR, `leads-${stamp}.csv`)
