@@ -1,0 +1,12 @@
+{
+  "name": "xiansuodouyin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Douyin comment lead filter web app",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}

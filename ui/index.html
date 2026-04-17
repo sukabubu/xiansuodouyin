@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抖音评论线索筛选</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="panel controls">
+        <div class="hero">
+          <h1>抖音评论线索筛选</h1>
+          <p class="muted">输入关键词，自动搜索视频板块、抓评论、过滤同行服务商，并导出表格。</p>
+        </div>
+
+        <section class="card">
+          <h2>快速模板</h2>
+          <div class="preset-row">
+            <button class="secondary preset-btn" data-preset="crossborder">跨境电商模板</button>
+            <button class="secondary preset-btn" data-preset="ads">广告投放模板</button>
+            <button class="secondary preset-btn" data-preset="simple">清空重填</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>搜索设置</h2>
+          <label>关键词，每行一个</label>
+          <textarea id="keywords">跨境电商
+tiktok跨境
+tk小店
+外贸
+亚马逊跨境</textarea>
+          <p class="help">建议 3-15 个关键词，使用更像抖音标题里的词，不要只写过于抽象的平台名。</p>
+
+          <div class="grid2">
+            <label>最近几天<input id="days" type="number" value="1" min="1" max="90" /></label>
+            <label>目标条数<input id="target" type="number" value="100" min="1" max="5000" /></label>
+          </div>
+
+          <div class="grid3">
+            <label>评论页数<input id="pages" type="number" value="2" min="1" max="20" /></label>
+            <label>每页评论数<input id="count" type="number" value="50" min="1" max="100" /></label>
+            <label>搜索滚动轮数<input id="scrollLoops" type="number" value="28" min="1" max="100" /></label>
+          </div>
+          <p class="help">评论页数越多、滚动轮数越大，覆盖更多，但耗时更长。</p>
+        </section>
+
+        <section class="card">
+          <h2>排除规则</h2>
+          <label>额外昵称排除词，每行一个</label>
+          <textarea id="extraNameExcludes">服务商
+货代
+海外仓</textarea>
+          <label>额外评论排除词，每行一个</label>
+          <textarea id="extraCommentExcludes">限单
+二审
+封店</textarea>
+          <p class="help">适合补充行业黑名单词。默认已内置一批常见服务商/同行排除词。</p>
+        </section>
+
+        <div class="action-row">
+          <button id="runBtn">开始运行</button>
+          <div id="statusBadge" class="badge idle">idle</div>
+        </div>
+      </aside>
+
+      <main class="panel output">
+        <section class="card summary-card">
+          <div class="summary-head">
+            <div>
+              <h2>任务状态</h2>
+              <div id="resultMeta" class="muted">暂无结果</div>
+            </div>
+            <div class="summary-actions">
+              <a id="downloadLink" class="secondary disabled" href="#" download>下载 CSV</a>
+              <button id="refreshBtn" class="secondary">刷新</button>
+            </div>
+          </div>
+          <div id="statsBar" class="stats-bar"></div>
+        </section>
+
+        <section class="card two-col">
+          <div>
+            <h2>运行日志</h2>
+            <pre id="logBox"></pre>
+          </div>
+          <div>
+            <h2>调试状态</h2>
+            <pre id="statusJson">{}</pre>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="result-header">
+            <h2>结果预览</h2>
+            <div class="muted">下方先显示前 50 行，完整内容请下载 CSV。</div>
+          </div>
+          <div id="tableWrap" class="table-wrap"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+  </html>

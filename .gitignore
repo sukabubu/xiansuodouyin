@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/
+output/
+npm-debug.log*
+package-lock.json
