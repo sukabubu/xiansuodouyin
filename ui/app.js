@@ -1,4 +1,5 @@
 const el = {
+  cookie: document.getElementById('cookie'),
   keywords: document.getElementById('keywords'),
   days: document.getElementById('days'),
   target: document.getElementById('target'),
@@ -105,6 +106,7 @@ el.runBtn.addEventListener('click', async () => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      cookie: el.cookie.value.trim(),
       keywords: lines(el.keywords.value),
       days: Number(el.days.value),
       target: Number(el.target.value),

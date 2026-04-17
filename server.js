@@ -76,7 +76,8 @@ function runCommand(command, args, env, label) {
 
 async function runPipeline(config) {
   if (state.running) throw new Error('A task is already running')
-  if (!process.env.DOUYIN_COOKIE) throw new Error('Missing DOUYIN_COOKIE in environment')
+  const cookie = (config.cookie || '').trim() || process.env.DOUYIN_COOKIE || ''
+  if (!cookie) throw new Error('Missing Douyin cookie. Paste one in the UI or set DOUYIN_COOKIE.')
 
   state.running = true
   state.lastResult = null
@@ -91,7 +92,7 @@ async function runPipeline(config) {
       'node',
       [SEARCH_SCRIPT],
       {
-        DOUYIN_COOKIE: process.env.DOUYIN_COOKIE,
+        DOUYIN_COOKIE: cookie,
         SEARCH_KEYWORDS: config.keywords.join(','),
         SEARCH_OUTPUT: searchPath,
         SEARCH_SCROLL_LOOPS: String(config.scrollLoops || 28),
@@ -109,7 +110,7 @@ async function runPipeline(config) {
         '--target', String(config.target),
         '--pages', String(config.pages),
         '--count', String(config.count),
-        '--cookie', process.env.DOUYIN_COOKIE,
+        '--cookie', cookie,
         '--now', now,
         '--extra-name-excludes', (config.extraNameExcludes || []).join(','),
         '--extra-comment-excludes', (config.extraCommentExcludes || []).join(','),
@@ -140,6 +141,7 @@ const server = http.createServer(async (req, res) => {
       const keywords = Array.isArray(body.keywords) ? body.keywords.map((s) => String(s).trim()).filter(Boolean) : []
       if (!keywords.length) return sendJson(res, 400, { error: 'keywords required' })
       runPipeline({
+        cookie: String(body.cookie || ''),
         keywords,
         days: Number(body.days || 1),
         target: Number(body.target || 100),
