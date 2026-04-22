@@ -61,7 +61,8 @@ def main():
     with open(args.input, encoding='utf-8') as f:
         search = json.load(f)
 
-    now = datetime.fromisoformat(args.now)
+    now_str = args.now.replace('Z', '+00:00')
+    now = datetime.fromisoformat(now_str)
     cutoff = now - timedelta(days=args.days)
     recent = []
     seen_videos = set()

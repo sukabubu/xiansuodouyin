@@ -51,7 +51,11 @@ async function runKeyword(browser, cookie, keyword, scrollLoops) {
   const seen = new Set()
   page.on('response', async (response) => {
     const url = response.url()
-    if (!url.includes('/aweme/v1/web/general/search/single/') && !url.includes('/aweme/v1/web/search/item/')) return
+    if (
+      !url.includes('/aweme/v1/web/general/search/single/') &&
+      !url.includes('/aweme/v1/web/general/search/stream/') &&
+      !url.includes('/aweme/v1/web/search/item/')
+    ) return
     try {
       const json = await response.json()
       for (const item of extractItems(json, keyword)) {
