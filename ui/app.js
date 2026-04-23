@@ -19,6 +19,8 @@ const el = {
   refreshBtn: document.getElementById('refreshBtn'),
 }
 
+let currentJobId = null
+
 const presets = {
   crossborder: { keywords: ['跨境电商', 'tiktok跨境', 'tk小店', '外贸', '亚马逊跨境'] },
   ads: { keywords: ['FB投流', 'Facebook投流', 'Meta广告', '海外广告投放', '独立站'] },
@@ -81,15 +83,20 @@ function renderStats(status, result) {
 async function refresh() {
   const status = await fetch('/api/status').then((r) => r.json())
   el.statusJson.textContent = JSON.stringify(status, null, 2)
-  el.logBox.textContent = (status.log || []).slice(-80).join('\n')
+  const activeLog = status.currentJob?.log || status.log || []
+  el.logBox.textContent = activeLog.slice(-80).join('\n')
   el.statusBadge.textContent = status.running ? 'running' : 'idle'
   el.statusBadge.className = `badge ${status.running ? 'running' : 'idle'}`
   let result = null
-  if (status.lastResult?.outputPath) {
-    result = await fetch('/api/result').then((r) => (r.ok ? r.json() : null))
+  currentJobId = status.currentJob?.id || currentJobId
+  const resultUrl = currentJobId ? `/api/jobs/${currentJobId}/result` : '/api/result'
+  const downloadUrl = currentJobId ? `/api/jobs/${currentJobId}/download` : '/api/download'
+  const resultMeta = status.currentJob?.result || status.lastResult
+  if (resultMeta?.outputPath) {
+    result = await fetch(resultUrl).then((r) => (r.ok ? r.json() : null))
     if (result) {
       el.resultMeta.textContent = `${result.outputPath}`
-      el.downloadLink.href = '/api/download'
+      el.downloadLink.href = downloadUrl
       el.downloadLink.classList.remove('disabled')
       renderTable(result.csv)
     }
@@ -102,7 +109,7 @@ async function refresh() {
 }
 
 el.runBtn.addEventListener('click', async () => {
-  await fetch('/api/run', {
+  const response = await fetch('/api/jobs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -117,6 +124,8 @@ el.runBtn.addEventListener('click', async () => {
       extraCommentExcludes: lines(el.extraCommentExcludes.value),
     }),
   })
+  const payload = await response.json().catch(() => null)
+  currentJobId = payload?.job?.id || null
   await refresh()
 })
 

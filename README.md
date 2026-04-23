@@ -69,6 +69,64 @@ npm start
 http://127.0.0.1:4318
 ```
 
+## Job API
+
+除了本地 Web UI，这个服务现在也可以作为上游系统的执行器使用，支持按任务 ID 查询结果。
+
+### 创建任务
+
+```bash
+POST /api/jobs
+Content-Type: application/json
+```
+
+请求体示例：
+
+```json
+{
+  "keywords": ["跨境电商", "tiktok跨境"],
+  "days": 1,
+  "target": 100,
+  "pages": 2,
+  "count": 50,
+  "scrollLoops": 28,
+  "extraNameExcludes": ["服务商"],
+  "extraCommentExcludes": ["陪跑"]
+}
+```
+
+### 查询任务状态
+
+```bash
+GET /api/jobs/:id
+```
+
+返回结果示例：
+
+```json
+{
+  "job": {
+    "id": "job_1776846399174_aoyu0i",
+    "status": "running",
+    "error": null,
+    "createdAt": "2026-04-22T08:26:39.174Z",
+    "startedAt": "2026-04-22T08:26:39.177Z",
+    "finishedAt": null,
+    "log": ["2026-04-22T08:26:39.177Z START search"],
+    "result": null
+  }
+}
+```
+
+### 获取任务结果
+
+```bash
+GET /api/jobs/:id/result
+GET /api/jobs/:id/download
+```
+
+旧接口 `POST /api/run`、`GET /api/status`、`GET /api/result`、`GET /api/download` 仍然保留，用于兼容原来的本地 UI。
+
 ## 目录
 
 ```text
