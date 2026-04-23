@@ -282,19 +282,7 @@ async function clickVideoTab(page) {
   return fallback
 }
 
-async function hasSliderChallenge(page) {
-  try {
-    const bodyText = await page.evaluate(() => document.body.innerText || '')
-    return /验证|滑块|拖动|请完成|安全|拼图/.test(bodyText)
-  } catch {
-    return false
-  }
-}
-
 async function trySolveSlider(page) {
-  if (!(await hasSliderChallenge(page))) {
-    return false
-  }
   const panel = { x: 529, y: 707, width: 381, height: 385 }
   const cropPath = '/Users/mega/xiansuodouyin/data/auto-slider-crop.png'
   const ok = await page.screenshot({ path: cropPath, clip: panel }).then(() => true).catch(() => false)

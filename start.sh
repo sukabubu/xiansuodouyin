@@ -24,7 +24,7 @@ fi
 
 printf "==> Starting comment API service\n"
 pkill -f "$COMMENT_WORKDIR/.venv/bin/python -c" >/dev/null 2>&1 || true
-nohup "$COMMENT_PYTHON" -c "exec('import asyncio\nfrom src.application.TikTokDownloader import TikTokDownloader\nasync def main():\n    async with TikTokDownloader() as d:\n        d.check_config()\n        await d.check_settings(False)\n        await d.server()\nasyncio.run(main())')" > "$ROOT_DIR/comment-api.log" 2>&1 &
+nohup env PYTHONPATH="$COMMENT_WORKDIR" "$COMMENT_PYTHON" -c "exec('import asyncio\nfrom src.application.TikTokDownloader import TikTokDownloader\nasync def main():\n    async with TikTokDownloader() as d:\n        d.check_config()\n        await d.check_settings(False)\n        await d.server()\nasyncio.run(main())')" > "$ROOT_DIR/comment-api.log" 2>&1 &
 
 printf "==> Waiting for comment API\n"
 for _ in $(seq 1 30); do
