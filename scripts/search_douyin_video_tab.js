@@ -1,5 +1,6 @@
 const { chromium } = require('playwright')
 const fs = require('fs')
+const { execFileSync } = require('child_process')
 
 const keywords = (process.env.SEARCH_KEYWORDS || '').split(',').map((s) => s.trim()).filter(Boolean)
 const output = process.env.SEARCH_OUTPUT
@@ -29,6 +30,49 @@ function extractItems(json, keyword) {
     })
   }
   return out
+}
+
+function detectSlider(cropPath) {
+  const raw = execFileSync('python3', ['-c', `import sys, json; sys.path.insert(0, '/Users/mega/.openclaw-daodun/workspace'); from captcha_recognizer import Slider; s = Slider(); box, score = s.identify('${cropPath}'); offset, score2 = s.identify_offset('${cropPath}'); print(json.dumps({'box': box, 'score': score, 'offset': offset, 'offset_score': score2}))`], { encoding: 'utf8' })
+  return JSON.parse(raw)
+}
+
+async function dragSlider(page, startX, startY, distance) {
+  await page.mouse.move(startX, startY, { steps: 6 })
+  await page.mouse.down()
+  const points = [0.10, 0.22, 0.34, 0.48, 0.62, 0.76, 0.88, 0.95, 1.0]
+  for (let i = 0; i < points.length; i += 1) {
+    const dx = distance * points[i]
+    await page.mouse.move(startX + dx, startY + Math.sin(i / 2.5) * 1.1, { steps: 4 + i })
+    await page.waitForTimeout(22 + Math.floor(Math.random() * 28))
+  }
+  await page.waitForTimeout(160)
+  await page.mouse.up()
+}
+
+async function trySolveSlider(page) {
+  const panel = { x: 529, y: 707, width: 381, height: 385 }
+  const cropPath = '/Users/mega/xiansuodouyin/data/auto-slider-crop.png'
+  const ok = await page.screenshot({ path: cropPath, clip: panel }).then(() => true).catch(() => false)
+  if (!ok) return false
+
+  let det
+  try {
+    det = detectSlider(cropPath)
+  } catch {
+    return false
+  }
+
+  const sliderLeft = Number(det.offset || 0)
+  const gapLeft = Number((det.box || [0])[0] || 0)
+  if (!sliderLeft || !gapLeft) return false
+
+  const dragDistance = Math.max(0, gapLeft - sliderLeft - 2)
+  const handleX = panel.x + sliderLeft + 18
+  const handleY = panel.y + 310
+  await dragSlider(page, handleX, handleY, dragDistance)
+  await page.waitForTimeout(5000)
+  return true
 }
 
 async function runKeyword(browser, cookie, keyword, scrollLoops) {
@@ -67,8 +111,10 @@ async function runKeyword(browser, cookie, keyword, scrollLoops) {
   })
   await page.goto(`https://www.douyin.com/search/${encodeURIComponent(keyword)}?type=general`, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.waitForTimeout(8000)
+  await trySolveSlider(page)
   await page.getByText('视频', { exact: true }).click().catch(() => {})
   await page.waitForTimeout(6000)
+  await trySolveSlider(page)
   for (let i = 0; i < scrollLoops; i += 1) {
     await page.mouse.wheel(0, 2600)
     await page.waitForTimeout(1200)
