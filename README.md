@@ -63,6 +63,53 @@ npm start
 npm start
 ```
 
+## 生产启动
+
+如果你要在本机或服务器上同时拉起：
+
+- Web UI 服务
+- 评论抓取 API 服务
+
+优先使用：
+
+```bash
+bash start.sh
+```
+
+这个脚本会：
+
+- 启动本地评论 API 服务
+- 检查 `127.0.0.1:5555` 是否就绪
+- 再启动 Web 服务
+
+默认评论服务路径是：
+
+```text
+$HOME/.openclaw/workspace/tools/TikTokDownloader
+```
+
+如果你的评论服务在别的目录，可以这样：
+
+```bash
+COMMENT_WORKDIR=/your/path/to/TikTokDownloader \
+COMMENT_PYTHON_BIN=/your/path/to/python \
+bash start.sh
+```
+
+## 评论服务依赖
+
+筛选脚本默认请求：
+
+```text
+http://127.0.0.1:5555
+```
+
+也可以通过环境变量覆盖：
+
+```bash
+COMMENT_API_BASE=http://127.0.0.1:5555
+```
+
 打开：
 
 ```text

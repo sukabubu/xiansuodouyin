@@ -4,6 +4,7 @@ import json
 import os
 import time
 import urllib.request
+import urllib.error
 from datetime import datetime, timedelta, timezone
 
 DEFAULT_NAME_EXCLUDES = [
@@ -18,6 +19,8 @@ DEFAULT_COMMENT_EXCLUDES = [
     "封店", "店铺", "出单", "上架", "履约", "货不对板", "服务商",
     "货代", "海外仓", "虚拟仓", "专线", "陪跑", "培训", "招商", "代运营",
 ]
+
+COMMENT_API_BASE = os.environ.get('COMMENT_API_BASE', 'http://127.0.0.1:5555').rstrip('/')
 
 def parse_args():
     p = argparse.ArgumentParser()
@@ -35,8 +38,17 @@ def parse_args():
 
 def post_comment(cookie, detail_id, pages, count):
     payload = json.dumps({'cookie': cookie, 'detail_id': detail_id, 'pages': pages, 'count': count, 'reply': False}).encode()
-    req = urllib.request.Request('http://127.0.0.1:5555/douyin/comment', data=payload, headers={'Content-Type': 'application/json', 'token': ''}, method='POST')
+    req = urllib.request.Request(f'{COMMENT_API_BASE}/douyin/comment', data=payload, headers={'Content-Type': 'application/json', 'token': ''}, method='POST')
     return json.loads(urllib.request.urlopen(req, timeout=180).read().decode())
+
+def healthcheck_comment_api():
+    req = urllib.request.Request(f'{COMMENT_API_BASE}/token', headers={'token': ''}, method='GET')
+    try:
+        raw = urllib.request.urlopen(req, timeout=30).read().decode()
+        data = json.loads(raw)
+        return data.get('message') == '验证成功！'
+    except Exception:
+        return False
 
 def is_excluded(nickname, unique_id, text, name_excludes, comment_excludes):
     name = f'{nickname} {unique_id}'.lower()
@@ -54,6 +66,8 @@ def main():
     args = parse_args()
     if not args.cookie:
         raise SystemExit('Missing Douyin cookie. Pass --cookie or DOUYIN_COOKIE.')
+    if not healthcheck_comment_api():
+        raise SystemExit(f'Comment API unavailable at {COMMENT_API_BASE}. Start the comment service first.')
 
     name_excludes = DEFAULT_NAME_EXCLUDES + [x.strip() for x in args.extra_name_excludes.split(',') if x.strip()]
     comment_excludes = DEFAULT_COMMENT_EXCLUDES + [x.strip() for x in args.extra_comment_excludes.split(',') if x.strip()]
